@@ -37,7 +37,8 @@ export default function Home() {
         flexDirection: "column",
         minHeight: "100vh",
         fontFamily: '"Calibri Light", Calibri, sans-serif',
-        paddingTop: "72px", // Spacer so content starts below fixed header (hero not overlapped)
+        paddingTop: "4.5px", // Spacer below fixed header
+        backgroundColor: "#f6f8f6", // Match hero so no dark strip between header and hero
       }}
     >
       <HeroSection />

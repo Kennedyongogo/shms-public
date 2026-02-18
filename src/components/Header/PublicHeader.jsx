@@ -237,12 +237,17 @@ export default function PublicHeader() {
     if (location.pathname === "/") {
       const section = document.getElementById(sectionId);
       if (section) {
-        section.scrollIntoView({ behavior: "smooth", block: "start" });
+        // When already at top (e.g. in hero), don't scroll — avoids jump when clicking Home from hero
+        const scrollY = window.scrollY;
+        const heroAlreadyAtTop = sectionId === "hero-section" && scrollY <= 20;
+        if (!heroAlreadyAtTop) {
+          section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
         // Ensure active section is set after scroll and re-enable scroll detection
         setTimeout(() => {
           setActiveSection(sectionId);
           setIsNavigating(false);
-        }, 1000);
+        }, heroAlreadyAtTop ? 0 : 1000);
       } else {
         console.warn(`Section with id "${sectionId}" not found`);
         setIsNavigating(false);
