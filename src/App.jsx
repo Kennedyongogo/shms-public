@@ -22,8 +22,6 @@ const TeamMemberDetail = lazy(() => import("./pages/TeamMemberDetail"));
 const Team = lazy(() => import("./pages/Team"));
 const Staff = lazy(() => import("./pages/Staff"));
 const Reviews = lazy(() => import("./pages/Reviews"));
-const Blog = lazy(() => import("./pages/Blog"));
-const BlogDetail = lazy(() => import("./pages/BlogDetail"));
 const Services = lazy(() => import("./pages/Services"));
 const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
 const Projects = lazy(() => import("./pages/Projects"));
@@ -51,7 +49,17 @@ function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
+    // Prevent browser from restoring previous scroll position (which runs after our effect)
+    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
     window.scrollTo(0, 0);
+    // Run again after paint so we win over any late scroll restoration
+    const id = requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+      requestAnimationFrame(() => window.scrollTo(0, 0));
+    });
+    return () => cancelAnimationFrame(id);
   }, [pathname]);
 
   return null;
@@ -71,6 +79,13 @@ function AppLayout() {
   const isMarketplaceLoggedIn =
     typeof localStorage !== "undefined" && !!localStorage.getItem("marketplace_token");
   const showPrivateHeader = !hideHeader && isMarketplaceArea && isMarketplaceLoggedIn;
+
+  // Prevent browser from ever restoring scroll (so home/hero doesn't open "scrolled up")
+  useEffect(() => {
+    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  }, []);
 
   return (
     <>
@@ -143,7 +158,7 @@ function AppLayout() {
                     fontSize: { xs: "1.6rem", md: "2rem" },
                   }}
                 >
-                  MK Agribusiness Consultancy
+                  Smart Hospital Management System
                 </Typography>
                 <Typography
                   variant="h6"
@@ -258,24 +273,6 @@ function AppLayout() {
               element={
                 <>
                   <Reviews />
-                  <Footer />
-                </>
-              }
-            />
-            <Route
-              path="/blog"
-              element={
-                <>
-                  <Blog />
-                  <Footer />
-                </>
-              }
-            />
-            <Route
-              path="/blog/:slug"
-              element={
-                <>
-                  <BlogDetail />
                   <Footer />
                 </>
               }

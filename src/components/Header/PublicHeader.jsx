@@ -31,7 +31,6 @@ import {
   Explore,
   Cabin,
   Hotel,
-  Article,
   BusinessCenter,
   Work,
   Assignment,
@@ -48,7 +47,6 @@ export default function PublicHeader() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [hasScrolled, setHasScrolled] = useState(false); // Track if user has scrolled at least once
-  const [isHeroVisible, setIsHeroVisible] = useState(false); // Track if hero section is visible
 
   const navItems = useMemo(
     () => [
@@ -77,12 +75,6 @@ export default function PublicHeader() {
         color: "#4caf50", // Secondary Green
       },
       {
-        label: "Blog",
-        icon: <Article />,
-        route: "/blog",
-        color: "#0fbd0f", // Primary Green
-      },
-      {
         label: "Testimonials",
         icon: <RateReview />,
         route: "/reviews",
@@ -92,56 +84,15 @@ export default function PublicHeader() {
     []
   );
 
-  // Close mobile menu when route changes
+  // Close mobile menu and reset scroll state when route changes
   useEffect(() => {
     setMobileMenuOpen(false);
     setIsHeaderVisible(true);
-  }, [location.pathname]);
-
-  // Listen to hero section visibility events from HeroSection component
-  useEffect(() => {
-    if (location.pathname !== "/" && location.pathname !== "/services") {
-      setIsHeroVisible(false);
-      setIsAtTop(false);
-      return;
+    if (location.pathname === "/") {
+      setScrolled(false);
+      setIsAtTop(true);
+      setHasScrolled(false);
     }
-
-    const handleHeroVisibility = (event) => {
-      const { isVisible, scrollY } = event.detail;
-      setIsHeroVisible(isVisible);
-      setIsAtTop(isVisible);
-
-      console.log("📡 Header received hero visibility event:", {
-        isVisible,
-        scrollY,
-        isAtTop: isVisible,
-        pathname: location.pathname,
-      });
-    };
-
-    window.addEventListener("heroVisibilityChange", handleHeroVisibility);
-
-    // Set initial state - check if we're at the top of the page
-    const initialScrollY = window.scrollY;
-    const isInitiallyAtTop = initialScrollY <= 20;
-    
-    // Check if hero section is visible in viewport
-    const heroElementId = location.pathname === "/" ? "hero-section" : "services-hero-section";
-    const heroElement = document.getElementById(heroElementId);
-    let heroIsVisibleInViewport = false;
-    if (heroElement) {
-      const rect = heroElement.getBoundingClientRect();
-      heroIsVisibleInViewport = rect.top < window.innerHeight && rect.bottom > 0;
-    }
-
-    // If at top and hero is visible, set transparent
-    const shouldBeTransparent = isInitiallyAtTop && heroIsVisibleInViewport;
-    setIsHeroVisible(shouldBeTransparent);
-    setIsAtTop(shouldBeTransparent);
-
-    return () => {
-      window.removeEventListener("heroVisibilityChange", handleHeroVisibility);
-    };
   }, [location.pathname]);
 
   useEffect(() => {
@@ -173,11 +124,8 @@ export default function PublicHeader() {
               rect.top < window.innerHeight && rect.bottom > 0;
           }
 
-          // Priority: if at very top, always transparent
-          // Otherwise, check if hero is visible (either from state or viewport check)
-          const newIsAtTop = isAtVeryTop
-            ? true
-            : (isHeroVisible || heroIsVisibleInViewport) && scrollY <= 50;
+          // Priority: if at very top, always at top; otherwise use viewport check
+          const newIsAtTop = isAtVeryTop ? true : heroIsVisibleInViewport && scrollY <= 50;
           setIsAtTop(newIsAtTop);
         } else if (location.pathname === "/services") {
           // For services page, make header transparent when at top
@@ -190,12 +138,8 @@ export default function PublicHeader() {
 
       // Detect active section based on scroll position
       if (location.pathname === "/") {
-        // Hide header immediately when scrolling down from hero section
-        const scrollY = window.scrollY;
-        const isAtVeryTop = scrollY <= 20;
-        
-        // Hide header immediately when user starts scrolling down (any scroll > 20px)
-        setIsHeaderVisible(isAtVeryTop);
+        // Header always visible on home (no hide on scroll)
+        setIsHeaderVisible(true);
 
         // Get all sections in the order they appear on the page (exclude items with routes)
         const sectionIds = navItems
@@ -233,29 +177,17 @@ export default function PublicHeader() {
             break;
           }
         }
-      } else if (location.pathname === "/services") {
-        // Hide header immediately when scrolling down from hero section (same as homepage)
-        const scrollY = window.scrollY;
-        const isAtVeryTop = scrollY <= 20;
-        
-        // Hide header immediately when user starts scrolling down (any scroll > 20px)
-        setIsHeaderVisible(isAtVeryTop);
-      } else if (location.pathname === "/team" || location.pathname === "/blog" || location.pathname === "/projects") {
-        // Hide header immediately when scrolling down (same as homepage and services)
-        const scrollY = window.scrollY;
-        const isAtVeryTop = scrollY <= 20;
-        
-        // Hide header immediately when user starts scrolling down (any scroll > 20px)
-        setIsHeaderVisible(isAtVeryTop);
+      } else if (location.pathname === "/services" || location.pathname === "/team" || location.pathname === "/projects") {
+        setIsHeaderVisible(true);
       } else {
-        setIsHeaderVisible(true); // Always visible on other pages
+        setIsHeaderVisible(true);
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     handleScroll(); // Check on mount
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [location.pathname, navItems, isNavigating, hasScrolled, isHeroVisible]);
+  }, [location.pathname, navItems, isNavigating, hasScrolled]);
 
   const isActive = (path) => location.pathname === path;
 
@@ -353,14 +285,9 @@ export default function PublicHeader() {
             location.pathname === "/services" && isAtTop
               ? "none"
               : "1px solid rgba(15, 189, 15, 0.15)",
-          // Hide header when scrolling past hero section on home page, services page, team page, blog page, or projects page
-          transform:
-            (location.pathname === "/" || location.pathname === "/services" || location.pathname === "/team" || location.pathname === "/blog" || location.pathname === "/projects") && !isHeaderVisible
-              ? "translateY(-100%)"
-              : "translateY(0)",
-          opacity: (location.pathname === "/" || location.pathname === "/services" || location.pathname === "/team" || location.pathname === "/blog" || location.pathname === "/projects") && !isHeaderVisible ? 0 : 1,
-          pointerEvents:
-            (location.pathname === "/" || location.pathname === "/services" || location.pathname === "/team" || location.pathname === "/blog" || location.pathname === "/projects") && !isHeaderVisible ? "none" : "auto",
+          transform: "translateY(0)",
+          opacity: 1,
+          pointerEvents: "auto",
           // Hide active underline when any nav button is hovered
           "&:has(button:hover) button[data-active='true']::after": {
             opacity: 0,
@@ -406,12 +333,13 @@ export default function PublicHeader() {
                     component="span"
                     sx={{
                       fontFamily: '"Calibri Light", Calibri, sans-serif',
-                      fontWeight: 700,
-                      fontSize: "clamp(0.5rem, 0.65vw + 0.5rem, 1.05rem)",
+                      fontWeight: 900,
+                      fontSize: "clamp(0.55rem, 0.7vw + 0.5rem, 1.15rem)",
+                      letterSpacing: "0.04em",
                       color:
                         isHeaderTransparent && isHeaderVisible
                           ? "#ffffff"
-                          : "#228b22",
+                          : "#00897B",
                       lineHeight: 1.1,
                       transition: "color 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
                       textShadow:
@@ -424,13 +352,13 @@ export default function PublicHeader() {
                       WebkitTextFillColor:
                         isHeaderTransparent && isHeaderVisible
                           ? "#ffffff"
-                          : "#228b22",
+                          : "#00897B",
                       letterSpacing: "0.02em",
                       textTransform: "uppercase",
                       whiteSpace: "nowrap",
                     }}
                   >
-                    MK AGRIBUSINESS CONSULTANTS
+                    Smart Hospital Management System
                   </Typography>
                 </Box>
               </Fade>
@@ -468,10 +396,10 @@ export default function PublicHeader() {
                         sx={{
                         color:
                           isActiveItem && location.pathname !== "/"
-                            ? item.color
+                            ? "#00897B"
                             : (isHeaderTransparent && isHeaderVisible) || (!scrolled && location.pathname === "/services")
                               ? "white"
-                              : "text.primary",
+                              : "#00897B",
                         fontSize: "clamp(0.7rem, 0.9vw + 0.5rem, 0.975rem)",
                         fontWeight:
                           isActiveItem && location.pathname !== "/" ? 700 : 600,
@@ -486,16 +414,16 @@ export default function PublicHeader() {
                         backgroundColor:
                           isActiveItem && location.pathname !== "/"
                             ? scrolled || location.pathname !== "/"
-                              ? `${item.color}20`
-                              : `${item.color}30`
+                              ? "rgba(0, 137, 123, 0.12)"
+                              : "rgba(0, 137, 123, 0.18)"
                             : "transparent",
                         "&:focus": {
                           outline: "none",
                           backgroundColor:
                             isActiveItem && location.pathname !== "/"
                               ? scrolled || location.pathname !== "/"
-                                ? `${item.color}20`
-                                : `${item.color}30`
+                                ? "rgba(0, 137, 123, 0.12)"
+                                : "rgba(0, 137, 123, 0.18)"
                               : "transparent",
                         },
                         "&:focus-visible": {
@@ -507,7 +435,7 @@ export default function PublicHeader() {
                             fontSize: "clamp(0.9rem, 1vw, 1.1rem)",
                             color:
                               isActiveItem && location.pathname !== "/"
-                                ? item.color
+                                ? "#00897B"
                                 : "inherit",
                           },
                         },
@@ -516,7 +444,7 @@ export default function PublicHeader() {
                           transform: "none",
                           boxShadow: "none",
                           "& .icon": {
-                            color: item.color,
+                            color: "#00897B",
                           },
                         },
                         "&:hover::after": {
@@ -528,7 +456,7 @@ export default function PublicHeader() {
                           width: "60%",
                           height: "3px",
                           backgroundColor:
-                            (location.pathname === "/services" && isHeaderTransparent) ? "white" : item.color,
+                            (location.pathname === "/services" && isHeaderTransparent) ? "white" : "#00897B",
                           borderRadius: "2px 2px 0 0",
                           transition: "all 0.3s ease-out",
                           zIndex: 1,
@@ -557,7 +485,7 @@ export default function PublicHeader() {
                                   transform: "translateX(-50%)",
                                   width: "60%",
                                   height: "3px",
-                                  backgroundColor: item.color,
+                                  backgroundColor: "#00897B",
                                   borderRadius: "2px 2px 0 0",
                                 }
                               : {},
@@ -565,10 +493,10 @@ export default function PublicHeader() {
                           transition: "all 0.4s ease",
                           color:
                             isActiveItem && location.pathname !== "/"
-                              ? item.color
+                              ? "#00897B"
                               : (isHeaderTransparent && isHeaderVisible) || (!scrolled && location.pathname === "/services")
                                 ? "white"
-                                : item.color,
+                                : "#00897B",
                         },
                       }}
                     >
@@ -579,7 +507,7 @@ export default function PublicHeader() {
               })}
             </Box>
 
-            {/* View Marketplace Button - Far Right */}
+            {/* Book Consultation Button - Far Right */}
             <Box
               sx={{
                 display: { xs: "none", lg: "flex" },
@@ -590,34 +518,34 @@ export default function PublicHeader() {
             >
               <Button
                 variant="contained"
-                onClick={() => navigate("/marketplace")}
+                onClick={() => navigate("/book-consultation")}
                 sx={{
                   px: 3,
                   py: 1.5,
                   fontSize: "0.875rem",
                   fontWeight: 700,
                   borderRadius: 2,
-                  backgroundColor: "#13ec13",
-                  color: "#0d1b0d",
+                  backgroundColor: "#00897B",
+                  color: "#ffffff",
                   textTransform: "none",
-                  boxShadow: "0 4px 12px rgba(19, 236, 19, 0.3)",
+                  boxShadow: "0 4px 12px rgba(0, 137, 123, 0.3)",
                   transition: "all 0.3s ease",
                   "&:focus": {
                     outline: "none",
-                    boxShadow: "0 4px 12px rgba(19, 236, 19, 0.3)",
+                    boxShadow: "0 4px 12px rgba(0, 137, 123, 0.3)",
                   },
                   "&:focus-visible": {
                     outline: "none",
-                    boxShadow: "0 4px 12px rgba(19, 236, 19, 0.3)",
+                    boxShadow: "0 4px 12px rgba(0, 137, 123, 0.3)",
                   },
                   "&:hover": {
-                    backgroundColor: "#11d411",
+                    backgroundColor: "#00695C",
                     transform: "translateY(-2px)",
-                    boxShadow: "0 6px 16px rgba(19, 236, 19, 0.4)",
+                    boxShadow: "0 6px 16px rgba(0, 137, 123, 0.4)",
                   },
                 }}
               >
-                View Marketplace
+                Book Appointment
               </Button>
             </Box>
 
@@ -629,23 +557,23 @@ export default function PublicHeader() {
                   display: { xs: "flex", md: "none" },
                   marginLeft: "auto",
                   color: mobileMenuOpen
-                    ? "#0fbd0f" // Primary Green
+                    ? "#00897B"
                     : (isHeaderTransparent && isHeaderVisible) || (!scrolled && location.pathname === "/services")
                       ? "white"
-                      : "#1a1a1a",
+                      : "#00897B",
                   transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                   borderRadius: "12px",
                   backgroundColor: mobileMenuOpen
                     ? scrolled || location.pathname !== "/"
-                      ? "rgba(15, 189, 15, 0.1)" // Primary Green with transparency
-                      : "rgba(15, 189, 15, 0.15)"
+                      ? "rgba(0, 137, 123, 0.1)"
+                      : "rgba(0, 137, 123, 0.15)"
                     : "transparent",
                   "&:focus": {
                     outline: "none",
                     backgroundColor: mobileMenuOpen
                       ? scrolled || location.pathname !== "/"
-                        ? "rgba(15, 189, 15, 0.1)"
-                        : "rgba(15, 189, 15, 0.15)"
+                        ? "rgba(0, 137, 123, 0.1)"
+                        : "rgba(0, 137, 123, 0.15)"
                       : "transparent",
                   },
                   "&:focus-visible": {
@@ -735,7 +663,7 @@ export default function PublicHeader() {
                 "&:focus-visible": { outline: "none", boxShadow: "none" },
                 "&:hover": {
                   transform: "rotate(90deg)",
-                  backgroundColor: "rgba(15, 189, 15, 0.05)", // Primary Green
+                  backgroundColor: "rgba(0, 137, 123, 0.05)",
                 },
               }}
             >
@@ -767,26 +695,26 @@ export default function PublicHeader() {
                     px: 1.5,
                     transition: "all 0.3s ease",
                     backgroundColor: isActiveItem
-                      ? `${item.color}20`
+                      ? "rgba(0, 137, 123, 0.12)"
                       : "transparent",
                     borderLeft: isActiveItem
-                      ? `3px solid ${item.color}`
+                      ? "3px solid #00897B"
                       : "3px solid transparent",
                     "&:focus": {
                       outline: "none",
                       backgroundColor: isActiveItem
-                        ? `${item.color}20`
+                        ? "rgba(0, 137, 123, 0.12)"
                         : "transparent",
                     },
                     "&:focus-visible": {
                       outline: "none",
                     },
                     "&:hover": {
-                      backgroundColor: `${item.color}15`,
+                      backgroundColor: "rgba(0, 137, 123, 0.08)",
                       transform: "translateX(8px)",
-                      boxShadow: `0 4px 12px ${item.color}20`,
+                      boxShadow: "0 4px 12px rgba(0, 137, 123, 0.2)",
                       "& .icon": {
-                        color: item.color,
+                        color: "#00897B",
                         transform: "rotate(180deg)",
                       },
                     },
@@ -794,7 +722,7 @@ export default function PublicHeader() {
                 >
                   <ListItemIcon
                     sx={{
-                      color: isActiveItem ? item.color : item.color,
+                      color: "#00897B",
                       minWidth: 32,
                       "& .icon": {
                         transition: "all 0.3s ease",
@@ -811,7 +739,7 @@ export default function PublicHeader() {
                     primaryTypographyProps={{
                       fontSize: { xs: "0.9rem", sm: "1rem" },
                       fontWeight: isActiveItem ? 700 : 600,
-                      color: isActiveItem ? item.color : "text.primary",
+                      color: isActiveItem ? "#00897B" : "text.primary",
                     }}
                   />
                 </ListItem>
@@ -824,7 +752,7 @@ export default function PublicHeader() {
             fullWidth
             onClick={() => {
               setMobileMenuOpen(false);
-              navigate("/marketplace");
+              navigate("/book-consultation");
             }}
             sx={{
               px: 3,
@@ -832,34 +760,35 @@ export default function PublicHeader() {
               fontSize: "0.875rem",
               fontWeight: 700,
               borderRadius: 2,
-              backgroundColor: "#13ec13",
-              color: "#0d1b0d",
+              backgroundColor: "#00897B",
+              color: "#ffffff",
               textTransform: "none",
-              boxShadow: "0 4px 12px rgba(19, 236, 19, 0.3)",
+              boxShadow: "0 4px 12px rgba(0, 137, 123, 0.3)",
               transition: "all 0.3s ease",
               "&:focus": {
                 outline: "none",
-                boxShadow: "0 4px 12px rgba(19, 236, 19, 0.3)",
+                boxShadow: "0 4px 12px rgba(0, 137, 123, 0.3)",
               },
               "&:focus-visible": {
                 outline: "none",
-                boxShadow: "0 4px 12px rgba(19, 236, 19, 0.3)",
+                boxShadow: "0 4px 12px rgba(0, 137, 123, 0.3)",
               },
               "&:hover": {
-                backgroundColor: "#11d411",
+                backgroundColor: "#00695C",
                 transform: "translateY(-2px)",
-                boxShadow: "0 6px 16px rgba(19, 236, 19, 0.4)",
+                boxShadow: "0 6px 16px rgba(0, 137, 123, 0.4)",
               },
             }}
           >
-            View Marketplace
+            Book Appointment
           </Button>
         </Box>
       </Drawer>
 
       <Toolbar
         sx={{
-          height: scrolled || location.pathname !== "/" ? "72px" : "80px",
+          height: "72px",
+          minHeight: "72px",
           transition: "height 0.4s ease",
         }}
       />

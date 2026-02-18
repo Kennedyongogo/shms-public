@@ -129,7 +129,7 @@ export default function ContactSection() {
                   {
                     icon: <Language sx={{ fontSize: 20 }} />,
                     label: "Website",
-                    value: "www.mkagribusinessconsultancy.com",
+                    value: "www.smart-hospital-management.com",
                     color: "#0d1b0d",
                   },
                 ].map((item) => (
@@ -241,7 +241,7 @@ export default function ContactSection() {
                     {
                       icon: <Language sx={{ fontSize: 20 }} />,
                       label: "Website",
-                      value: "www.mkagribusinessconsultancy.com",
+                      value: "www.smart-hospital-management.com",
                       color: "#0d1b0d",
                     },
                   ].map((item) => (
