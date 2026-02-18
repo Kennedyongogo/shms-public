@@ -264,9 +264,9 @@ export default function PublicHeader() {
   const leftNavItems = []; // No left nav items - all go to right
   const rightNavItems = navItems; // All nav items on the right
 
-  // Check if header is transparent (on home page or services page when at absolute top)
+  // Check if header is transparent (only on services page when at absolute top)
   const isServicesPage = location.pathname === "/services";
-  const isHeaderTransparent = (isHomePage || isServicesPage) && isAtTop;
+  const isHeaderTransparent = isServicesPage && isAtTop;
 
   // Debug logging for font size conditions
   useEffect(() => {
@@ -339,18 +339,18 @@ export default function PublicHeader() {
         elevation={0}
         sx={{
           backgroundColor:
-            (location.pathname === "/" || location.pathname === "/services") && isAtTop
-              ? "transparent" // Transparent when at absolute top on home page or services page
+            location.pathname === "/services" && isAtTop
+              ? "transparent" // Transparent when at absolute top on services page only
               : "rgba(246, 248, 246, 0.8)", // Light background with transparency otherwise
           backdropFilter:
-            (location.pathname === "/" || location.pathname === "/services") && isAtTop ? "none" : "blur(12px)",
+            location.pathname === "/services" && isAtTop ? "none" : "blur(12px)",
           boxShadow:
-            (location.pathname === "/" || location.pathname === "/services") && isAtTop
+            location.pathname === "/services" && isAtTop
               ? "none"
               : "0 8px 32px rgba(26, 26, 26, 0.12)",
           transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
           borderBottom:
-            (location.pathname === "/" || location.pathname === "/services") && isAtTop
+            location.pathname === "/services" && isAtTop
               ? "none"
               : "1px solid rgba(15, 189, 15, 0.15)",
           // Hide header when scrolling past hero section on home page, services page, team page, blog page, or projects page
@@ -466,12 +466,12 @@ export default function PublicHeader() {
                       disableRipple
                       data-active={isActiveItem}
                         sx={{
-                          color:
-                            isActiveItem && location.pathname !== "/"
-                              ? item.color
-                              : (isHeaderTransparent && isHeaderVisible) || (!scrolled && (location.pathname === "/" || location.pathname === "/services"))
-                                ? "white"
-                                : "text.primary",
+                        color:
+                          isActiveItem && location.pathname !== "/"
+                            ? item.color
+                            : (isHeaderTransparent && isHeaderVisible) || (!scrolled && location.pathname === "/services")
+                              ? "white"
+                              : "text.primary",
                         fontSize: "clamp(0.7rem, 0.9vw + 0.5rem, 0.975rem)",
                         fontWeight:
                           isActiveItem && location.pathname !== "/" ? 700 : 600,
@@ -528,13 +528,13 @@ export default function PublicHeader() {
                           width: "60%",
                           height: "3px",
                           backgroundColor:
-                            (location.pathname === "/" || (location.pathname === "/services" && isHeaderTransparent)) ? "white" : item.color,
+                            (location.pathname === "/services" && isHeaderTransparent) ? "white" : item.color,
                           borderRadius: "2px 2px 0 0",
                           transition: "all 0.3s ease-out",
                           zIndex: 1,
                         },
                         "&::after":
-                          isActiveItem && (location.pathname === "/" || (location.pathname === "/services" && isHeaderTransparent))
+                          isActiveItem && (location.pathname === "/services" && isHeaderTransparent)
                             ? {
                                 content: '""',
                                 position: "absolute",
@@ -566,7 +566,7 @@ export default function PublicHeader() {
                           color:
                             isActiveItem && location.pathname !== "/"
                               ? item.color
-                              : (isHeaderTransparent && isHeaderVisible) || (!scrolled && location.pathname === "/")
+                              : (isHeaderTransparent && isHeaderVisible) || (!scrolled && location.pathname === "/services")
                                 ? "white"
                                 : item.color,
                         },
@@ -630,7 +630,7 @@ export default function PublicHeader() {
                   marginLeft: "auto",
                   color: mobileMenuOpen
                     ? "#0fbd0f" // Primary Green
-                    : (isHeaderTransparent && isHeaderVisible) || (!scrolled && (location.pathname === "/" || location.pathname === "/services"))
+                    : (isHeaderTransparent && isHeaderVisible) || (!scrolled && location.pathname === "/services")
                       ? "white"
                       : "#1a1a1a",
                   transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
