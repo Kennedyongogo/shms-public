@@ -114,6 +114,74 @@ function getMarketplaceAuthHeaders() {
   return headers;
 }
 
+function getPatientAuthHeaders() {
+  const token = typeof localStorage !== "undefined" ? localStorage.getItem("patient_token") : null;
+  const headers = { "Content-Type": "application/json", Accept: "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
+/**
+ * Register patient portal account.
+ * Body: { full_name, email?, phone?, password, confirm_password?, hospital_id? }
+ */
+export async function registerPatient(body) {
+  const base = getBaseUrl();
+  const res = await fetch(`${base}/api/patient-auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.message || "Registration failed");
+    err.response = res;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
+/**
+ * Login patient portal account.
+ * Body: { identifier|emailOrPhone|email|phone, password }
+ */
+export async function loginPatient(body) {
+  const base = getBaseUrl();
+  const res = await fetch(`${base}/api/patient-auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.message || "Login failed");
+    err.response = res;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
+/**
+ * Get current patient profile.
+ */
+export async function getPatientMe() {
+  const base = getBaseUrl();
+  const res = await fetch(`${base}/api/patient-auth/me`, {
+    method: "GET",
+    headers: getPatientAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.message || "Failed to fetch profile");
+    err.response = res;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
 /**
  * Register marketplace user (minimal: email, phone, password, fullName, termsAccepted, privacyAccepted).
  */

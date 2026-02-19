@@ -9,10 +9,11 @@ import { ThemeProvider, CssBaseline, LinearProgress, Box, Typography, CircularPr
 import { HelmetProvider } from "react-helmet-async";
 import { theme } from "./theme";
 import "./App.css";
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, useEffect, useLayoutEffect, Suspense, lazy } from "react";
 import PublicHeader from "./components/Header/PublicHeader";
 import PrivateHeader from "./components/Header/PrivateHeader";
 import MarketplaceGate from "./components/MarketplaceGate";
+import PatientGate from "./components/PatientGate";
 import Footer from "./components/Footer/Footer";
 import Chatbot from "./components/Chatbot/Chatbot";
 
@@ -27,9 +28,11 @@ const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
 const Projects = lazy(() => import("./pages/Projects"));
 const BookConsultation = lazy(() => import("./pages/BookConsultation"));
 const MarketplaceLogin = lazy(() => import("./pages/MarketplaceLogin"));
+const PatientPortalLogin = lazy(() => import("./pages/PatientPortalLogin"));
 const ProfileComplete = lazy(() => import("./pages/ProfileComplete"));
 const MarketplaceArea = lazy(() => import("./pages/MarketplaceArea"));
 const MarketplaceDashboard = lazy(() => import("./pages/MarketplaceDashboard"));
+const PatientDashboard = lazy(() => import("./pages/PatientDashboard"));
 const FarmersHub = lazy(() => import("./pages/FarmersHub"));
 const InputsFeeds = lazy(() => import("./pages/InputsFeeds"));
 const VeterinaryServices = lazy(() => import("./pages/VeterinaryServices.jsx"));
@@ -48,13 +51,14 @@ const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
 function ScrollToTop() {
   const { pathname } = useLocation();
 
-  useEffect(() => {
-    // Prevent browser from restoring previous scroll position (which runs after our effect)
+  useLayoutEffect(() => {
     if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
     window.scrollTo(0, 0);
-    // Run again after paint so we win over any late scroll restoration
+  }, [pathname]);
+
+  useEffect(() => {
     const id = requestAnimationFrame(() => {
       window.scrollTo(0, 0);
       requestAnimationFrame(() => window.scrollTo(0, 0));
@@ -323,6 +327,18 @@ function AppLayout() {
               }
             />
             <Route path="/marketplace" element={<MarketplaceLogin />} />
+            <Route path="/patient" element={<PatientPortalLogin />} />
+            <Route
+              path="/patient/dashboard"
+              element={
+                <PatientGate>
+                  <>
+                    <PatientDashboard />
+                    <Footer />
+                  </>
+                </PatientGate>
+              }
+            />
             <Route
               path="/marketplace/dashboard"
               element={

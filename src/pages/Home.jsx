@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { Box } from "@mui/material";
 import HeroSection from "../components/Home/HeroSection";
@@ -10,23 +10,37 @@ import CTASection from "../components/Home/CTASection";
 import Footer from "../components/Footer/Footer";
 
 function scrollHomeToTop() {
-  // Only scroll to top; do not scrollIntoView (that pulls hero under the fixed header)
   window.scrollTo(0, 0);
 }
 
 export default function Home() {
   const location = useLocation();
+  const lockUntil = useRef(0);
 
-  // Same behavior as Team/Services: when this page opens, always start at top (no "pushed up" hero)
-  useEffect(() => {
+  useLayoutEffect(() => {
     scrollHomeToTop();
+    lockUntil.current = performance.now() + 600;
+  }, [location.pathname]);
+
+  useEffect(() => {
     const t1 = setTimeout(scrollHomeToTop, 0);
-    const t2 = setTimeout(scrollHomeToTop, 100);
-    const t3 = setTimeout(scrollHomeToTop, 300);
+    const t2 = setTimeout(scrollHomeToTop, 50);
+    const t3 = setTimeout(scrollHomeToTop, 150);
+    const t4 = setTimeout(scrollHomeToTop, 350);
+    // Keep scroll at 0 for 600ms so layout shifts from sections (FAQs, services, etc.) can't move the page
+    const interval = setInterval(() => {
+      if (performance.now() < lockUntil.current && window.scrollY !== 0) {
+        window.scrollTo(0, 0);
+      }
+    }, 16);
+    const stopAt = setTimeout(() => clearInterval(interval), 600);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
+      clearTimeout(t4);
+      clearInterval(interval);
+      clearTimeout(stopAt);
     };
   }, [location.pathname]);
 
@@ -37,7 +51,7 @@ export default function Home() {
         flexDirection: "column",
         minHeight: "100vh",
         fontFamily: '"Calibri Light", Calibri, sans-serif',
-        paddingTop: "4.5px", // Spacer below fixed header
+        paddingTop: "6px", // Spacer below fixed header
         backgroundColor: "#f6f8f6", // Match hero so no dark strip between header and hero
       }}
     >

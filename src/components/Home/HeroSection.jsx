@@ -36,7 +36,6 @@ export default function HeroSection() {
           const scrollY = window.scrollY;
           const isAtTop = scrollY <= 20;
 
-          // Dispatch custom event to notify header
           const event = new CustomEvent("heroVisibilityChange", {
             detail: {
               isVisible: isVisible && isAtTop,
@@ -55,8 +54,7 @@ export default function HeroSection() {
 
     observer.observe(heroSection);
 
-    // Check initial state
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       const rect = heroSection.getBoundingClientRect();
       const isInView = rect.top < window.innerHeight && rect.bottom > 0;
       const isAtTop = window.scrollY <= 20;
@@ -71,6 +69,7 @@ export default function HeroSection() {
     }, 200);
 
     return () => {
+      clearTimeout(timeoutId);
       observer.disconnect();
     };
   }, []);
@@ -82,8 +81,9 @@ export default function HeroSection() {
         position: "relative",
         display: "flex",
         flexDirection: { xs: "column", lg: "row" },
-        height: "calc(100vh - 72px)",
-        maxHeight: "calc(100vh - 72px)",
+        // 72px header spacer + 6px Home wrapper padding = 78px; avoid 6px overflow that causes "scroll down then back"
+        height: "calc(100vh - 78px)",
+        maxHeight: "calc(100vh - 78px)",
         width: "100%",
         overflow: "hidden",
         fontFamily: '"Calibri Light", Calibri, sans-serif',
