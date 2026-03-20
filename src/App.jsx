@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Landingpage from "./components/Landingpage";
 import AdminHome from "./pages/AdminHome";
 import SettingsPage from "./components/Admin/SettingsPage";
+import Subscription from "./pages/Subscription";
 
 function App() {
   const ProtectedAdminRoute = ({ element }) => {
@@ -15,6 +16,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Landingpage />} />
         <Route path="/dashboard" element={<ProtectedAdminRoute element={<AdminHome />} />} />
+        <Route path="/subscription" element={<ProtectedAdminRoute element={<Subscription />} />} />
         <Route path="/settings" element={<ProtectedAdminRoute element={<SettingsPage />} />} />
       </Routes>
     </Router>

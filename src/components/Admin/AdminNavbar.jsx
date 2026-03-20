@@ -24,6 +24,7 @@ export default function AdminNavbar() {
     const p = location.pathname || "";
     if (p.startsWith("/settings")) return "Settings";
     if (p.startsWith("/dashboard")) return "Home";
+    if (p.startsWith("/subscription")) return "Subscription";
     return "Home";
   }, [location.pathname]);
 
@@ -45,8 +46,7 @@ export default function AdminNavbar() {
 
   const navItems = [
     { label: "Home", path: "/dashboard" },
-    { label: "Owners", path: "#" },
-    { label: "Subscription", path: "#" },
+    { label: "Subscription", path: "/subscription" },
     { label: "Settings", path: "/settings" },
   ];
 
