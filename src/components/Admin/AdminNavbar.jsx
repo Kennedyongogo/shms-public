@@ -25,6 +25,7 @@ export default function AdminNavbar() {
     if (p.startsWith("/settings")) return "Settings";
     if (p.startsWith("/dashboard")) return "Home";
     if (p.startsWith("/subscription")) return "Subscription";
+    if (p.startsWith("/newsletter")) return "Newsletter";
     return "Home";
   }, [location.pathname]);
 
@@ -47,6 +48,7 @@ export default function AdminNavbar() {
   const navItems = [
     { label: "Home", path: "/dashboard" },
     { label: "Subscription", path: "/subscription" },
+    { label: "Newsletter", path: "/newsletter" },
     { label: "Settings", path: "/settings" },
   ];
 

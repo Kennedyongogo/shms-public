@@ -4,6 +4,7 @@ import Landingpage from "./components/Landingpage";
 import AdminHome from "./pages/AdminHome";
 import SettingsPage from "./components/Admin/SettingsPage";
 import Subscription from "./pages/Subscription";
+import Newsletter from "./pages/Newsletter";
 
 function App() {
   const ProtectedAdminRoute = ({ element }) => {
@@ -17,6 +18,7 @@ function App() {
         <Route path="/" element={<Landingpage />} />
         <Route path="/dashboard" element={<ProtectedAdminRoute element={<AdminHome />} />} />
         <Route path="/subscription" element={<ProtectedAdminRoute element={<Subscription />} />} />
+        <Route path="/newsletter" element={<ProtectedAdminRoute element={<Newsletter />} />} />
         <Route path="/settings" element={<ProtectedAdminRoute element={<SettingsPage />} />} />
       </Routes>
     </Router>
