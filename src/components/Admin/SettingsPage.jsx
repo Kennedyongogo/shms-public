@@ -102,6 +102,17 @@ export default function SettingsPage() {
     email: "",
     profile_image_path: "",
   });
+  const [isFounder, setIsFounder] = useState(false);
+  const [founderData, setFounderData] = useState({
+    phone_number: "",
+    bio: "",
+    facebook_url: "",
+    twitter_url: "",
+    linkedin_url: "",
+    instagram_url: "",
+    website_url: "",
+    primary_color: "",
+  });
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState("");
   const [imageUploading, setImageUploading] = useState(false);
@@ -143,11 +154,25 @@ export default function SettingsPage() {
       try {
         const data = await fetchJson(API_ME, { token });
         const u = data?.data?.admin;
+        const c = data?.data?.carlvyne_account;
         if (u) {
           setUserData({
             full_name: u.full_name || "",
             email: u.email || "",
             profile_image_path: u.profile_image_path || "",
+          });
+        }
+        setIsFounder(!!c);
+        if (c) {
+          setFounderData({
+            phone_number: c.phone_number || "",
+            bio: c.bio || "",
+            facebook_url: c.facebook_url || "",
+            twitter_url: c.twitter_url || "",
+            linkedin_url: c.linkedin_url || "",
+            instagram_url: c.instagram_url || "",
+            website_url: c.website_url || "",
+            primary_color: c.primary_color || "",
           });
         }
       } catch {
@@ -173,11 +198,26 @@ export default function SettingsPage() {
     try {
       const data = await uploadProfileImage(token, profileImageFile);
       const u = data?.data?.admin;
+      const c = data?.data?.carlvyne_account;
       if (u) {
         setUserData((prev) => ({ ...prev, profile_image_path: u.profile_image_path || "" }));
         try {
           localStorage.setItem("admin_user", JSON.stringify(u));
         } catch (_) {}
+      }
+      if (c) {
+        setIsFounder(true);
+        setFounderData((prev) => ({
+          ...prev,
+          phone_number: c.phone_number ?? prev.phone_number,
+          bio: c.bio ?? prev.bio,
+          facebook_url: c.facebook_url ?? prev.facebook_url,
+          twitter_url: c.twitter_url ?? prev.twitter_url,
+          linkedin_url: c.linkedin_url ?? prev.linkedin_url,
+          instagram_url: c.instagram_url ?? prev.instagram_url,
+          website_url: c.website_url ?? prev.website_url,
+          primary_color: c.primary_color ?? prev.primary_color,
+        }));
       }
       if (profileImagePreview) URL.revokeObjectURL(profileImagePreview);
       setProfileImageFile(null);
@@ -200,8 +240,21 @@ export default function SettingsPage() {
       const body = {
         full_name: String(userData.full_name ?? "").trim(),
       };
+      if (isFounder) {
+        Object.assign(body, {
+          phone_number: founderData.phone_number.trim() || "",
+          bio: founderData.bio.trim() || "",
+          facebook_url: founderData.facebook_url.trim() || "",
+          twitter_url: founderData.twitter_url.trim() || "",
+          linkedin_url: founderData.linkedin_url.trim() || "",
+          instagram_url: founderData.instagram_url.trim() || "",
+          website_url: founderData.website_url.trim() || "",
+          primary_color: founderData.primary_color.trim() || "",
+        });
+      }
       const data = await fetchJson(API_ME, { method: "PATCH", token, body });
       const u = data?.data?.admin;
+      const c = data?.data?.carlvyne_account;
       if (u) {
         setUserData({
           full_name: u.full_name || "",
@@ -211,6 +264,19 @@ export default function SettingsPage() {
         try {
           localStorage.setItem("admin_user", JSON.stringify(u));
         } catch (_) {}
+      }
+      if (c) {
+        setIsFounder(true);
+        setFounderData({
+          phone_number: c.phone_number || "",
+          bio: c.bio || "",
+          facebook_url: c.facebook_url || "",
+          twitter_url: c.twitter_url || "",
+          linkedin_url: c.linkedin_url || "",
+          instagram_url: c.instagram_url || "",
+          website_url: c.website_url || "",
+          primary_color: c.primary_color || "",
+        });
       }
       Swal.fire({ icon: "success", title: "Success", text: data?.message || "Profile updated successfully." });
     } catch (e) {
@@ -303,6 +369,13 @@ export default function SettingsPage() {
         </Stack>
         <Typography variant="body2" sx={{ color: textSecondary, mb: 2 }}>
           Update your profile and password.
+          {isFounder ? (
+            <>
+              {" "}
+              Your name, photo, and founder details below also update the Carlvyne SHMS Founders page (same email as your
+              founder account).
+            </>
+          ) : null}
         </Typography>
 
         <Stack spacing={3}>
@@ -381,6 +454,106 @@ export default function SettingsPage() {
               </Button>
             </CardActions>
           </Card>
+
+          {isFounder ? (
+            <Card elevation={0} sx={cardSx}>
+              <CardHeader
+                title="Founder public profile"
+                subheader="Shown on the Carlvyne SHMS Founders page"
+                titleTypographyProps={{ fontWeight: 700, color: textPrimary }}
+                subheaderTypographyProps={{ color: textSecondary }}
+                sx={{ pb: 0 }}
+              />
+              <Divider sx={{ borderColor: "rgba(67, 73, 77, 0.35)" }} />
+              <CardContent>
+                <Stack spacing={2}>
+                  <FormControl fullWidth sx={inputSx}>
+                    <InputLabel>Phone (Kenya)</InputLabel>
+                    <OutlinedInput
+                      label="Phone (Kenya)"
+                      placeholder="+2547XXXXXXXX"
+                      value={founderData.phone_number}
+                      onChange={(e) => setFounderData({ ...founderData, phone_number: e.target.value })}
+                    />
+                  </FormControl>
+                  <FormControl fullWidth sx={inputSx}>
+                    <InputLabel>Bio</InputLabel>
+                    <OutlinedInput
+                      label="Bio"
+                      multiline
+                      minRows={3}
+                      value={founderData.bio}
+                      onChange={(e) => setFounderData({ ...founderData, bio: e.target.value })}
+                    />
+                  </FormControl>
+                  <FormControl fullWidth sx={inputSx}>
+                    <InputLabel>Facebook URL</InputLabel>
+                    <OutlinedInput
+                      label="Facebook URL"
+                      value={founderData.facebook_url}
+                      onChange={(e) => setFounderData({ ...founderData, facebook_url: e.target.value })}
+                    />
+                  </FormControl>
+                  <FormControl fullWidth sx={inputSx}>
+                    <InputLabel>Twitter / X URL</InputLabel>
+                    <OutlinedInput
+                      label="Twitter / X URL"
+                      value={founderData.twitter_url}
+                      onChange={(e) => setFounderData({ ...founderData, twitter_url: e.target.value })}
+                    />
+                  </FormControl>
+                  <FormControl fullWidth sx={inputSx}>
+                    <InputLabel>LinkedIn URL</InputLabel>
+                    <OutlinedInput
+                      label="LinkedIn URL"
+                      value={founderData.linkedin_url}
+                      onChange={(e) => setFounderData({ ...founderData, linkedin_url: e.target.value })}
+                    />
+                  </FormControl>
+                  <FormControl fullWidth sx={inputSx}>
+                    <InputLabel>Instagram URL</InputLabel>
+                    <OutlinedInput
+                      label="Instagram URL"
+                      value={founderData.instagram_url}
+                      onChange={(e) => setFounderData({ ...founderData, instagram_url: e.target.value })}
+                    />
+                  </FormControl>
+                  <FormControl fullWidth sx={inputSx}>
+                    <InputLabel>Website URL</InputLabel>
+                    <OutlinedInput
+                      label="Website URL"
+                      value={founderData.website_url}
+                      onChange={(e) => setFounderData({ ...founderData, website_url: e.target.value })}
+                    />
+                  </FormControl>
+                  <FormControl fullWidth sx={inputSx}>
+                    <InputLabel>Accent color (hex)</InputLabel>
+                    <OutlinedInput
+                      label="Accent color (hex)"
+                      placeholder="#00897B"
+                      value={founderData.primary_color}
+                      onChange={(e) => setFounderData({ ...founderData, primary_color: e.target.value })}
+                    />
+                  </FormControl>
+                </Stack>
+              </CardContent>
+              <Divider sx={{ borderColor: "rgba(67, 73, 77, 0.35)" }} />
+              <CardActions sx={{ justifyContent: "flex-end", px: 2, py: 1.5 }}>
+                <Button
+                  variant="contained"
+                  onClick={handleUserUpdate}
+                  disabled={dloading}
+                  sx={{
+                    bgcolor: teal,
+                    fontWeight: 700,
+                    "&:hover": { bgcolor: tealDark },
+                  }}
+                >
+                  {dloading ? "Submitting…" : "Save founder profile"}
+                </Button>
+              </CardActions>
+            </Card>
+          ) : null}
 
           <form onSubmit={handlePasswordUpdate}>
             <Card elevation={0} sx={cardSx}>

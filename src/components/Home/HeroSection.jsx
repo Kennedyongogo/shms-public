@@ -14,6 +14,8 @@ import {
 } from "@mui/icons-material";
 
 const HERO_IMAGE_URL = "/images/renatalferro-dentist-1437413_1920.jpg";
+/** Shows immediately under the photo while the file decodes (avoids a white panel flash). */
+const HERO_IMAGE_PLACEHOLDER_BG = "#c5d0c8";
 
 export default function HeroSection() {
   const navigate = useNavigate();
@@ -277,6 +279,7 @@ export default function HeroSection() {
           sx={{
             position: "absolute",
             inset: 0,
+            backgroundColor: HERO_IMAGE_PLACEHOLDER_BG,
             backgroundImage: `url(${HERO_IMAGE_URL})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
